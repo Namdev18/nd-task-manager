@@ -8,13 +8,6 @@ import {
   getTaskState,
 } from "./redux/tasksSlice";
 
-// git init
-// git add README.md
-// git commit -m "first commit"
-// git branch -M main
-// git remote add origin https://github.com/Namdev18/ntm.git
-// git push -u origin main
-
 const TaskList = React.lazy(() => import("./components/Tasks/TaskList"));
 
 const LoaderComp = () => (

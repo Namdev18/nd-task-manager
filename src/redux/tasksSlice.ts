@@ -115,12 +115,15 @@ const tasksSlice: Slice<
             })
             .addCase(createTask.fulfilled, (state, action) => {
                 state.activeEditTask = DEFAULT_EMPTY_TASK;
-                state.tasks.push({
-                    ...DEFAULT_EMPTY_TASK,
-                    id: action.payload.id,
-                    description: action.payload.body,
-                    title: action.payload.title
-                });
+                state.tasks = [
+                    {
+                        ...DEFAULT_EMPTY_TASK,
+                        id: action.payload.id,
+                        description: action.payload.body,
+                        title: action.payload.title
+                    },
+                    ...state.tasks
+                ];
                 state.createTaskLoading = false;
             })
             .addCase(createTask.rejected, (state, action) => {
