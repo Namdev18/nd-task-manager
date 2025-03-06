@@ -14,12 +14,13 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.6.0",
-    "isomorphic-fetch": "^3.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-redux": "^9.2.0"
+    "react-redux": "^9.2.0",
+    "ts-jest": "^29.2.6"
   },
   "devDependencies": {
+    "isomorphic-fetch": "^3.0.0",
     "@eslint/js": "^9.21.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
