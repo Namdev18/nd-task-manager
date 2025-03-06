@@ -1,0 +1,211 @@
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom";
+import { Provider, useDispatch, useSelector } from "react-redux";
+import TaskList from "../components/TaskList";
+import {
+  setTaskActiveEditAction,
+  editActiveTaskAction,
+  createTask,
+  updateTask,
+  deleteTask,
+} from "../redux/tasksSlice";
+import { DEFAULT_EMPTY_TASK, RequestType } from "../types/task";
+import store from "../redux/store";
+
+jest.mock("react-redux", () => ({
+  useDispatch: jest.fn(),
+  useSelector: jest.fn(),
+}));
+
+// jest.mock('../components/TaskList', () => ({ task, onClickEditBtn }) => (
+//   <div>
+//     Mocked TaskItem
+//     <button onClick={() => onClickEditBtn(task)}>Edit</button>
+//   </div>
+// ));
+
+// jest.mock('./TaskEditor', () => ({ task, editCurTask }) => (
+//   <div>
+//     Mocked TaskEditor
+//     <input name="title" value={task.title} onChange={editCurTask} />
+//   </div>
+// ));
+
+describe("TaskList Component", () => {
+  const mockDispatch = jest.fn();
+
+  beforeEach(() => {
+    (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch);
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) =>
+      selector({
+        activeEditTask: DEFAULT_EMPTY_TASK,
+        loading: false,
+      })
+    );
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("renders the TaskList component with no tasks", () => {
+    render(
+      <Provider store={store}>
+        <TaskList tasks={[]} />
+      </Provider>
+    );
+    expect(screen.getByText("No tasks available")).toBeInTheDocument();
+  });
+
+  test("renders the TaskList component with tasks", () => {
+    const tasks = [
+      {
+        ...DEFAULT_EMPTY_TASK,
+        id: 1,
+        title: "Task 1",
+        description: "Description 1",
+      },
+    ];
+    render(
+      <Provider store={store}>
+        <TaskList tasks={tasks} />
+      </Provider>
+    );
+    expect(screen.getByText("Mocked TaskItem")).toBeInTheDocument();
+  });
+
+  test("dispatches setTaskActiveEditAction on edit button click", () => {
+    const tasks = [
+      {
+        ...DEFAULT_EMPTY_TASK,
+        id: 1,
+        title: "Task 1",
+        description: "Description 1",
+      },
+    ];
+    render(
+      <Provider store={store}>
+        <TaskList tasks={tasks} />
+      </Provider>
+    );
+    fireEvent.click(screen.getByText("Edit"));
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setTaskActiveEditAction({
+        id: 1,
+        title: "Task 1",
+        description: "Description 1",
+      })
+    );
+  });
+
+  test("dispatches editActiveTaskAction on input change", () => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) =>
+      selector({
+        activeEditTask: { ...DEFAULT_EMPTY_TASK, title: "Task 1" },
+        loading: false,
+      })
+    );
+    render(
+      <Provider store={store}>
+        <TaskList tasks={[]} />
+      </Provider>
+    );
+    fireEvent.change(screen.getByDisplayValue("Task 1"), {
+      target: { name: "title", value: "Updated Task 1" },
+    });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      editActiveTaskAction({
+        ...DEFAULT_EMPTY_TASK,
+        title: "Updated Task 1",
+      })
+    );
+  });
+
+  test("dispatches createTask on save button click for new task", () => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) =>
+      selector({
+        activeEditTask: {
+          ...DEFAULT_EMPTY_TASK,
+          clickedOnAddTask: true,
+          title: "New Task",
+          description: "New Description",
+        },
+        loading: false,
+      })
+    );
+    render(
+      <Provider store={store}>
+        <TaskList tasks={[]} />
+      </Provider>
+    );
+    fireEvent.click(screen.getByText("Create Task"));
+    expect(mockDispatch).toHaveBeenCalledWith(
+      createTask({
+        requestType: RequestType.POST,
+        payload: {
+          ...DEFAULT_EMPTY_TASK,
+          clickedOnAddTask: true,
+          title: "New Task",
+          description: "New Description",
+          userId: 1,
+          body: "New Description",
+        },
+      })
+    );
+  });
+
+  test("dispatches updateTask on save button click for existing task", () => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) =>
+      selector({
+        activeEditTask: {
+          id: 1,
+          title: "Updated Task",
+          description: "Updated Description",
+          clickedOnAddTask: false,
+        },
+        loading: false,
+      })
+    );
+    render(
+      <Provider store={store}>
+        <TaskList tasks={[]} />
+      </Provider>
+    );
+    fireEvent.click(screen.getByText("Create Task"));
+    expect(mockDispatch).toHaveBeenCalledWith(
+      updateTask({
+        requestType: RequestType.PUT,
+        payload: {
+          id: 1,
+          title: "Updated Task",
+          description: "Updated Description",
+          body: "Updated Description",
+        },
+      })
+    );
+  });
+
+  test("dispatches deleteTask on delete button click", () => {
+    const tasks = [
+      {
+        ...DEFAULT_EMPTY_TASK,
+        id: 1,
+        title: "Task 1",
+        description: "Description 1",
+      },
+    ];
+    render(
+        <Provider store={store}>
+          <TaskList tasks={[]} />
+        </Provider>
+      );
+    fireEvent.click(screen.getByText("Delete"));
+    expect(mockDispatch).toHaveBeenCalledWith(
+      deleteTask({
+        requestType: RequestType.DELETE,
+        payload: 1,
+      })
+    );
+  });
+});

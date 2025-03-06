@@ -1,0 +1,49 @@
+import React from 'react';
+import { render, screen, act } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import configureStore from 'redux-mock-store';
+import App from '../components/App'; // Ensure this path is correct
+import { fetchTasks } from '../redux/tasksSlice'; // Ensure this path is correct
+import { RequestType } from '../types/task'; // Ensure this path is correct
+
+const mockStore = configureStore([]);
+const store = mockStore({});
+
+jest.mock('../redux/tasksSlice', () => ({
+  fetchTasks: jest.fn(),
+}));
+
+const mockDispatch = jest.fn();
+store.dispatch = mockDispatch;
+
+afterEach(() => {
+  jest.clearAllMocks();
+});
+
+// test("renders the App component", () => {
+//   render(
+//     <Provider store={store}>
+//       <App />
+//     </Provider>
+//   );
+//   expect(screen.getByText((content, element) => content.includes("NS - Task Manager"))).toBeInTheDocument();
+//   expect(screen.getByText("Task List")).toBeInTheDocument();
+//   expect(screen.getByText("Add Task")).toBeInTheDocument();
+//   expect(screen.getByText("Thank you for visit.")).toBeInTheDocument();
+// });
+
+test("dispatches fetchTasks action on mount", async () => {
+  await act(async () => {
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    );
+  });
+  expect(mockDispatch).toHaveBeenCalledWith(
+    fetchTasks({
+      requestType: RequestType.GET,
+      payload: {},
+    })
+  );
+});
